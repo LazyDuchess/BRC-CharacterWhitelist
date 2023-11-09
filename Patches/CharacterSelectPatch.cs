@@ -12,15 +12,10 @@ namespace CharacterWhitelist.Patches
     internal static class CharacterSelectPatch
     {
         [HarmonyPostfix]
-        [HarmonyPatch("PopulateListOfSelectableCharacters")]
+        [HarmonyPatch(nameof(CharacterSelect.PopulateListOfSelectableCharacters))]
         private static void PopulateListOfSelectableCharacters_Postfix(CharacterSelect __instance, Player player)
         {
-            var filteredCharacterList = new List<Characters>();
-            foreach(var character in __instance.selectableCharacters)
-            {
-                if (CharacterWhitelistPlugin.IsCharacterAllowed(character))
-                    filteredCharacterList.Add(character);
-            }
+            var filteredCharacterList = __instance.selectableCharacters.Where(CharacterWhitelistPlugin.IsCharacterAllowed).ToList();
 
             // At no point in the story we have less than 2 characters to choose from, so the game doesn't handle this and just crashes by default. We pad the list here as a quick and dirty fix.
             if (filteredCharacterList.Count < 2)

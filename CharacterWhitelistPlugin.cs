@@ -18,7 +18,7 @@ namespace CharacterWhitelist
     {
         public static ListType ListType => _listType.Value;
         public static bool AlwaysAllowBaseCharacters => _alwaysAllowBaseCharacters.Value;
-        public static List<string> CharacterList
+        public static HashSet<string> CharacterSet
         {
             get;
             private set;
@@ -45,7 +45,7 @@ namespace CharacterWhitelist
                 else
                     return true;
             }
-            if (CharacterList.Contains(characterName))
+            if (CharacterSet.Contains(characterName))
                 return ListType == ListType.Whitelist;
             else
                 return ListType == ListType.Blacklist;
@@ -96,7 +96,7 @@ namespace CharacterWhitelist
             _characterList = Config.Bind("General",
                 "CharacterList",
                 "",
-                "Case sensitive comma separated list of character names to whitelist/blacklist (e.g. patrick, akko, reiko, spaceGirl)."
+                "Case sensitive comma separated list of character filenames (without the .cbb extension) to whitelist/blacklist (e.g. patrick, akko, reiko, spaceGirl, eightBall)."
                 );
 
             UpdateCharacterList();
@@ -105,16 +105,16 @@ namespace CharacterWhitelist
 
         void UpdateCharacterList()
         {
-            var charList = new List<string>();
+            var charSet = new HashSet<string>();
             var splitList = _characterList.Value.Split(',');
             foreach(var split in splitList)
             {
                 var trimmed = split.Trim();
                 if (string.IsNullOrEmpty(trimmed))
                     continue;
-                charList.Add(trimmed);
+                charSet.Add(trimmed);
             }
-            CharacterList = charList;
+            CharacterSet = charSet;
         }
 
         bool IsCrewBoomInstalled()
