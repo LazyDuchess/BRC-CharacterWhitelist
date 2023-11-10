@@ -4,6 +4,8 @@ BepInEx plugin that whitelists or blacklists characters from Cyphers. Useful in 
 # Configuration
 By default you're able to whitelist or blacklist characters by entering the Character Select screen at a Cypher via button prompts. You will see the changes reflected next time you enter a Cypher.
 
+![List UI](https://github.com/LazyDuchess/BRC-CharacterWhitelist/assets/42678262/659c2de7-4ebd-4352-877a-9e81819fbd8a)
+
 If you want to manually edit the configuration, a documented BepInEx configuration file will be created the first time you run the mod, named **"CharacterWhitelist.cfg"**. You can use r2modman to more easily edit it, or the [ConfigurationManager](https://github.com/BepInEx/BepInEx.ConfigurationManager) tool to edit it in-game with the F1 key.
 
 For CrewBoom characters, you have to type their filenames into the list, minus the ".cbb" extension. You can also disable the in-game Cypher UI from here.
