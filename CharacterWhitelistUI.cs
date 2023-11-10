@@ -41,6 +41,8 @@ namespace CharacterWhitelist
             newLabel.fontSize = fontSize;
             newLabel.fontMaterial = fontMaterial;
             newLabel.alignment = TextAlignmentOptions.MidlineLeft;
+            newLabel.fontStyle = FontStyles.Bold;
+            newLabel.outlineWidth = 0.2f;
 
             return newLabel;
         }
