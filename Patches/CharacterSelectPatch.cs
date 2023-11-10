@@ -5,12 +5,68 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using Reptile;
+using UnityEngine;
 
 namespace CharacterWhitelist.Patches
 {
     [HarmonyPatch(typeof(CharacterSelect))]
     internal static class CharacterSelectPatch
     {
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(CharacterSelect.SetState))]
+        private static void SetState_Postfix(CharacterSelect __instance, CharacterSelect.CharSelectState setState)
+        {
+            if (setState != CharacterSelect.CharSelectState.MAIN_STATE)
+            {
+                if (CharacterWhitelistUI.Instance != null)
+                    CharacterWhitelistUI.Instance.Deactivate();
+            }
+            else
+            {
+                if (CharacterWhitelistUI.Instance != null && CharacterWhitelistPlugin.InGameUI)
+                    CharacterWhitelistUI.Instance.Activate(__instance.CharactersInCircle[__instance.selectionInCircle].character);
+            }
+        }
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(CharacterSelect.MoveSelection))]
+        private static void MoveSelection_Postfix(CharacterSelect __instance)
+        {
+            if (CharacterWhitelistUI.Instance != null && CharacterWhitelistUI.Instance.isActiveAndEnabled)
+                CharacterWhitelistUI.Instance.UpdateLabels(__instance.CharactersInCircle[__instance.selectionInCircle].character);
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(CharacterSelect.StopCharacterSelect))]
+        private static void StopCharacterSelect_Postfix()
+        {
+            if (CharacterWhitelistUI.Instance != null)
+                CharacterWhitelistUI.Instance.Deactivate();
+        }
+
+        [HarmonyPostfix]
+        [HarmonyPatch(nameof(CharacterSelect.CharSelectUpdate))]
+        private static void CharSelectUpdate_Postfix(CharacterSelect __instance)
+        {
+            if (__instance.state != CharacterSelect.CharSelectState.MAIN_STATE)
+                return;
+            if (!CharacterWhitelistPlugin.InGameUI)
+                return;
+            if (CharacterWhitelistUI.Instance != null && CharacterWhitelistUI.Instance.isActiveAndEnabled)
+                CharacterWhitelistUI.Instance.UpdateUI(__instance);
+            // Button 3 = Cancelled (B)
+            // Button 2 = Accepted (A)
+            // Button 64 = X
+            // Button 48 = Y
+            // Button 45 = Left Bumper?
+            // Button 47 = Right Bumper?
+            /*
+            for(var i=0;i<100;i++)
+            {
+                if (__instance.gameInput.GetButtonNew(i, 0))
+                    Debug.Log($"Pressed button {i}");
+            }*/
+        }
+
         [HarmonyPostfix]
         [HarmonyPatch(nameof(CharacterSelect.PopulateListOfSelectableCharacters))]
         private static void PopulateListOfSelectableCharacters_Postfix(CharacterSelect __instance, Player player)

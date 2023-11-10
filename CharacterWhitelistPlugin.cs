@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using Reptile;
 using System.IO;
+using System.Text;
 
 namespace CharacterWhitelist
 {
@@ -16,8 +17,31 @@ namespace CharacterWhitelist
     [BepInDependency(CrewBoomGUID, BepInDependency.DependencyFlags.SoftDependency)]
     internal class CharacterWhitelistPlugin : BaseUnityPlugin
     {
-        public static ListType ListType => _listType.Value;
-        public static bool AlwaysAllowBaseCharacters => _alwaysAllowBaseCharacters.Value;
+        public static bool InGameUI => _inGameUI.Value;
+        public static ListType ListType
+        {
+            get
+            {
+                return _listType.Value;
+            }
+
+            set
+            {
+                _listType.Value = value;
+            }
+        }
+        public static bool AlwaysAllowBaseCharacters
+        {
+            get
+            {
+                return _alwaysAllowBaseCharacters.Value;
+            }
+
+            set
+            {
+                _alwaysAllowBaseCharacters.Value = value;
+            }
+        }
         public static HashSet<string> CharacterSet
         {
             get;
@@ -27,24 +51,70 @@ namespace CharacterWhitelist
         private static ConfigEntry<bool> _alwaysAllowBaseCharacters;
         private static ConfigEntry<ListType> _listType;
         private static ConfigEntry<string> _characterList;
+        private static ConfigEntry<bool> _inGameUI;
 
-        public static bool IsCharacterAllowed(Characters character)
+        static string GetCharacterInternalName(Characters character)
         {
             var baseCharacter = character <= Characters.MAX;
-            if (baseCharacter && AlwaysAllowBaseCharacters)
-                return true;
             var characterName = character.ToString();
             if (!baseCharacter)
             {
                 if (CrewBoomAPIDatabase.IsInitialized)
                 {
                     if (!CrewBoomAPIDatabase.GetUserGuidForCharacter((int)character, out Guid characterGuid))
-                        return true;
+                        return "";
                     characterName = GetNameForCrewBoomCharacter(characterGuid);
                 }
                 else
-                    return true;
+                    return "";
             }
+            return characterName;
+        }
+
+        public static void ClearCharacterList()
+        {
+            CharacterSet.Clear();
+            UpdateCharacterListFromCharacterSet();
+        }
+
+        public static void RemoveCharacterFromList(Characters character)
+        {
+            CharacterSet.Remove(GetCharacterInternalName(character));
+            UpdateCharacterListFromCharacterSet();
+        }
+
+        public static void AddCharacterToList(Characters character)
+        {
+            CharacterSet.Add(GetCharacterInternalName(character));
+            UpdateCharacterListFromCharacterSet();
+        }
+
+        static void UpdateCharacterListFromCharacterSet()
+        {
+            var charSetList = CharacterSet.ToList();
+            var charListBuilder = new StringBuilder();
+            for(var i=0;i<charSetList.Count;i++)
+            {
+                charListBuilder.Append(charSetList[i]);
+                if (i < charSetList.Count - 1)
+                    charListBuilder.Append(", ");
+            }
+            _characterList.SettingChanged -= UpdateCharacterListEvent;
+            _characterList.Value = charListBuilder.ToString();
+            _characterList.SettingChanged += UpdateCharacterListEvent;
+        }
+
+        public static bool IsCharacterInList(Characters character)
+        {
+            return CharacterSet.Contains(GetCharacterInternalName(character));
+        }
+
+        public static bool IsCharacterAllowed(Characters character)
+        {
+            var baseCharacter = character <= Characters.MAX;
+            if (baseCharacter && AlwaysAllowBaseCharacters)
+                return true;
+            var characterName = GetCharacterInternalName(character);
             if (CharacterSet.Contains(characterName))
                 return ListType == ListType.Whitelist;
             else
@@ -81,6 +151,12 @@ namespace CharacterWhitelist
 
         void Configure()
         {
+            _inGameUI = Config.Bind("General",
+                "InGameUI",
+                true,
+                "Displays a UI for blacklisting/whitelisting characters at the cypher in-game."
+                );
+
             _alwaysAllowBaseCharacters = Config.Bind("General",
                 "AlwaysAllowBaseCharacters",
                 true,
@@ -89,8 +165,8 @@ namespace CharacterWhitelist
 
             _listType = Config.Bind("General",
                 "ListType",
-                ListType.Whitelist,
-                "Type of list, in case you want a whitelist (only allow listed characters) or a blacklist (allow any character except those in the list)"
+                ListType.Blacklist,
+                "Type of list, in case you want a whitelist (only allow listed characters) or a blacklist (allow any character except those on the list)"
                 );
 
             _characterList = Config.Bind("General",
@@ -100,10 +176,15 @@ namespace CharacterWhitelist
                 );
 
             UpdateCharacterList();
-            _characterList.SettingChanged += (object sender, EventArgs e) => { UpdateCharacterList(); };
+            _characterList.SettingChanged += UpdateCharacterListEvent;
         }
 
-        void UpdateCharacterList()
+        static void UpdateCharacterListEvent(object sender, EventArgs e)
+        {
+            UpdateCharacterList();
+        }
+
+        static void UpdateCharacterList()
         {
             var charSet = new HashSet<string>();
             var splitList = _characterList.Value.Split(',');
