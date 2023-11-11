@@ -172,30 +172,59 @@ namespace CharacterWhitelist
             gameObject.SetActive(false);
         }
 
+        string GetCharacterName(Characters character)
+        {
+            var localizer = Core.Instance.Localizer;
+            if (character < Characters.MAX)
+                return localizer.GetCharacterName(character);
+            if (CrewBoomAPI.CrewBoomAPIDatabase.IsInitialized)
+            {
+                if (CrewBoom.CharacterDatabase.GetCharacter(character, out CrewBoom.Data.CustomCharacter crewBoomCharacter))
+                    return crewBoomCharacter.Definition.CharacterName;
+            }
+            return null;
+        }
+
         public void UpdateLabels(Characters currentCharacter)
         {
-            if (CharacterWhitelistPlugin.IsCharacterInList(currentCharacter))
+            var characterName = GetCharacterName(currentCharacter).ToUpperInvariant();
+            var baseCharacter = currentCharacter <= Characters.MAX;
+            if (baseCharacter)
+                characterName += " (Base)";
+            else
+                characterName += " (Custom)";
+            var inList = CharacterWhitelistPlugin.IsCharacterInList(currentCharacter);
+            if (inList)
             {
-                _infoLabel.text = "Character is on the List";
+                _infoLabel.color = new Color32(54, 217, 0, 255);
+                _infoLabel.text = $"{characterName} is on the List";
                 _addRemoveLabel.text = "Remove from List";
             }
             else
             {
-                _infoLabel.text = "Character is NOT on the List";
+                _infoLabel.color = _switchListTypeLabel.color;
+                _infoLabel.text = $"{characterName} is NOT on the List";
                 _addRemoveLabel.text = "Add to List";
             }
 
-            if (CharacterWhitelistPlugin.ListType == ListType.Whitelist)
-                _switchListTypeLabel.text = "List Type: Whitelist";
-            else
-                _switchListTypeLabel.text = "List Type: Blacklist";
+            var listTypeString = "<color=#0d2fb8>Disabled</color>";
+            switch(CharacterWhitelistPlugin.ListType)
+            {
+                case ListType.Whitelist:
+                    listTypeString = "<color=#36d900>Whitelist</color>";
+                    break;
+                case ListType.Blacklist:
+                    listTypeString = "<color=#e01907>Blacklist</color>";
+                    break;
+            }
+            _switchListTypeLabel.text = $"List Type: {listTypeString}";
 
-            _clearListLabel.text = $"Clear List ({CharacterWhitelistPlugin.CharacterSet.Count})";
+            _clearListLabel.text = $"Clear List ({CharacterWhitelistPlugin.CharacterSet.Count} Characters)";
 
             if (CharacterWhitelistPlugin.AlwaysAllowBaseCharacters)
-                _toggleBaseCharactersLabel.text = "Base characters are unaffected";
+                _toggleBaseCharactersLabel.text = "Base characters: Always shown";
             else
-                _toggleBaseCharactersLabel.text = "Base characters are affected";
+                _toggleBaseCharactersLabel.text = "Base characters: Affected by List";
         }
 
         internal static void DestroyUI()
@@ -224,11 +253,18 @@ namespace CharacterWhitelist
 
             if (gameInput.GetButtonNew(SwitchListTypeActionID))
             {
-                if (CharacterWhitelistPlugin.ListType == ListType.Whitelist)
-                    CharacterWhitelistPlugin.ListType = ListType.Blacklist;
-                else
-                    CharacterWhitelistPlugin.ListType = ListType.Whitelist;
-
+                switch(CharacterWhitelistPlugin.ListType)
+                {
+                    case ListType.Whitelist:
+                        CharacterWhitelistPlugin.ListType = ListType.Blacklist;
+                        break;
+                    case ListType.Blacklist:
+                        CharacterWhitelistPlugin.ListType = ListType.Disabled;
+                        break;
+                    case ListType.Disabled:
+                        CharacterWhitelistPlugin.ListType = ListType.Whitelist;
+                        break;
+                }
                 Core.Instance.AudioManager.PlaySfxUI(SfxCollectionID.MenuSfx, AudioClipID.confirm, 0f);
                 UpdateLabels(character);
             }

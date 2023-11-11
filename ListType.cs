@@ -9,6 +9,7 @@ namespace CharacterWhitelist
     public enum ListType
     {
         Whitelist,
-        Blacklist
+        Blacklist,
+        Disabled
     }
 }
