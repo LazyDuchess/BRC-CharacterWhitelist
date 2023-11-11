@@ -6,7 +6,7 @@ When you enter the Character Select Screen at a Cypher in-game you will be greet
 
 You will see the changes reflected next time you enter a Cypher. The game will also generate a configuration file named **"CharacterWhitelist.cfg"** in your **"BepInEx/config"** folder, so alternatively you can modify this file to manage your whitelist/blacklist. You can also hide the in-game Cypher blacklist/whitelist UI from this configuration file.
 
-![List UI](https://github.com/LazyDuchess/BRC-CharacterWhitelist/assets/42678262/659c2de7-4ebd-4352-877a-9e81819fbd8a)
+![CharacterWhitelist UI](https://github.com/LazyDuchess/BRC-CharacterWhitelist/assets/42678262/964929c2-f4a3-4f0b-a1c1-90c548a5ef89)
 
 When editing the configuration file, for CrewBoom characters, you have to type their filenames into the list, minus the ".cbb" extension. The list is case sensitive and comma-separated.
 
