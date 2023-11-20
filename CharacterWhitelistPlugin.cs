@@ -60,6 +60,8 @@ namespace CharacterWhitelist
             var characterName = character.ToString();
             if (!baseCharacter)
             {
+                if (!IsCrewBoomInstalled())
+                    return "";
                 if (CrewBoomAPIDatabase.IsInitialized)
                 {
                     if (!CrewBoomAPIDatabase.GetUserGuidForCharacter((int)character, out Guid characterGuid))
@@ -205,6 +207,10 @@ namespace CharacterWhitelist
                 charSet.Add(trimmed);
             }
             CharacterSet = charSet;
+        }
+        internal static bool IsCrewBoomInstalled()
+        {
+            return Chainloader.PluginInfos.Keys.Any(x => x == CrewBoomGUID);
         }
     }
 }

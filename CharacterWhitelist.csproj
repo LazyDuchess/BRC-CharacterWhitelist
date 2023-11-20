@@ -4,7 +4,7 @@
     <TargetFramework>net46</TargetFramework>
     <AssemblyName>CharacterWhitelist</AssemblyName>
     <Description></Description>
-    <Version>1.3.0</Version>
+    <Version>1.3.1</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -31,6 +31,7 @@
     </Reference>
     <Reference Include="CrewBoomAPI">
       <HintPath>lib\CrewBoomAPI.dll</HintPath>
+      <Private>false</Private>
     </Reference>
     <Reference Include="CrewBoomMono">
       <HintPath>lib\CrewBoomMono.dll</HintPath>

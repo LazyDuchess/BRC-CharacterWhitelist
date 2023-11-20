@@ -177,11 +177,16 @@ namespace CharacterWhitelist
             var localizer = Core.Instance.Localizer;
             if (character < Characters.MAX)
                 return localizer.GetCharacterName(character);
-            if (CrewBoomAPI.CrewBoomAPIDatabase.IsInitialized)
+            if (CharacterWhitelistPlugin.IsCrewBoomInstalled())
             {
-                if (CrewBoom.CharacterDatabase.GetCharacter(character, out CrewBoom.Data.CustomCharacter crewBoomCharacter))
-                    return crewBoomCharacter.Definition.CharacterName;
+                if (CrewBoomAPI.CrewBoomAPIDatabase.IsInitialized)
+                {
+                    if (CrewBoom.CharacterDatabase.GetCharacter(character, out CrewBoom.Data.CustomCharacter crewBoomCharacter))
+                        return crewBoomCharacter.Definition.CharacterName;
+                }
             }
+            else
+                return null;
             return null;
         }
 
